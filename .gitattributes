@@ -1,0 +1,22 @@
+# Normalise line endings so the same file doesn't show up as fully changed
+# just because someone committed it from Windows vs. macOS/Linux.
+* text=auto eol=lf
+
+# Keep Windows scripts checked out with CRLF — the shell needs them.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets must never be line-ending converted or diffed.
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Not text — leave untouched.
+*.msi binary
+*.apk binary
+*.zip binary
