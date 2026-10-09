@@ -1,7 +1,12 @@
-# FusionCut — landing page
+# FusionCut KMP — landing page
 
-Marketing / download page for **FusionCut 1.1.0**, the Kotlin Multiplatform motion
-graphics editor at `C:\Users\Erik1\Desktop\FusionCut\FusionCut`.
+Marketing / download page for **FusionCut KMP 1.1.0**, the experimental Kotlin
+Multiplatform motion graphics editor at `C:\Users\Erik1\Desktop\FusionCut\FusionCut`.
+
+> **FusionCut KMP was an experiment and is not recommended for use.** The page says
+> so in three places: a permanent banner under the nav, a callout in the hero, and
+> the first note in the download section. Copy lives in `EXPERIMENT_WARNING` and
+> `STATUS_NOTES` in `src/data.js` — change it there, not in the components.
 
 Vite + React 19 + Tailwind CSS v4. No UI libraries, no icon package — the icons in
 `src/components/Icons.jsx` are hand-drawn inline SVG.
@@ -20,20 +25,55 @@ npm run build    # -> dist/
 
 ## Download files
 
-Both installers live in `public/downloads/` and are served from the site root:
-
-| Button | Path | Size |
-|---|---|---|
-| Download for Windows | `/downloads/FusionCut-1.1.0.msi` | 107.4 MB |
-| Download for Android | `/downloads/FusionCut-1.1.0.apk` | 16.6 MB |
-
-They were copied from:
+The installers are **GitHub Release assets**, not files in the repo. They were
+originally copied from:
 
 - `…\FusionCut\composeApp\build\compose\binaries\main\msi\FusionCut-1.1.0.msi`
-- `…\FusionCut\composeApp\release\composeApp-release.apk` (renamed to `FusionCut-1.1.0.apk`)
+- `…\FusionCut\composeApp\release\composeApp-release.apk`
 
-When you ship a new build, replace those two files. **The buttons need no code change**
-— filenames are versioned in `src/data.js` if you want to bump them.
+| Button | Release asset | Size | SHA-256 |
+|---|---|---|---|
+| Download for Windows | `FusionCut-KMP-1.1.0.msi` | 107.4 MB | `a6a90653…0ac53c` |
+| Download for Android | `FusionCut-KMP-1.1.0.apk` | 16.6 MB | `a50062af…65f0a8` |
+
+Full digests are in `DOWNLOADS.*.sha256` (`src/data.js`) and are printed on the
+page under "Verify your download".
+
+### Why release assets and not `public/downloads/`
+
+The MSI is 107 MB. GitHub rejects any blob over 100 MB, so committing it makes
+`git push` fail outright — the whole site would be unpushable for one binary.
+
+The original bug this caused: `public/downloads/*` is gitignored, so the build
+that Netlify/Vercel deployed contained no `/downloads/*.msi`. The host answered
+the request with the SPA's `index.html`, the browser saved that under the name
+`FusionCut-1.1.0.msi`, and Windows reported **"the file is corrupt"**. The file
+was never corrupt; the response was HTML.
+
+Both fixes are in place now:
+
+1. `DOWNLOADS.*.file` points at the release asset, so a real binary is served.
+2. The buttons HEAD the URL before navigating and refuse anything that is not a
+   plausible installer size, so a future 404 shows "Download failed" instead of
+   silently saving a renamed error page.
+
+### Publishing a build
+
+The repo **must be public** — release assets on a private repo 404 for
+anonymous visitors, which reproduces the original symptom.
+
+```bash
+gh auth login
+npm run publish:downloads
+```
+
+That script verifies the magic bytes (MSI is an OLE2 file, APK is a zip) and the
+size of both files, prints their SHA-256 digests, creates or updates the `v1.1.0`
+release, uploads the assets, and finally curls the public URLs to confirm they
+answer `200`. Only then rebuild and redeploy the site.
+
+To bump the version: change `RELEASE_TAG` and the filenames in `src/data.js`,
+rename the two files in `public/downloads/`, and re-run the script.
 
 ---
 
@@ -81,6 +121,9 @@ about them. If you wire them up later, they are free marketing:
 
 ### Disclosed honestly on the page (`STATUS_NOTES` in `src/data.js`)
 
+0. **It was an experiment.** Stated in the always-on banner, the hero callout,
+   the first download-section note and the first FAQ answer. Source text is
+   `EXPERIMENT_WARNING` in `src/data.js`.
 1. **SmartScreen warning.** The MSI/EXEs are Authenticode-signed with a *self-signed*
    cert (`CN=FusionCut Developer`, see `build.gradle.kts` `signWindowsBinary`). Windows
    will warn on first run.
@@ -110,12 +153,21 @@ npm run audit:behaviour   # clicks every tab + accordion, HEADs every download l
 npm run shoot -- http://127.0.0.1:5173/ shot.png 390 844 true "#download"
 ```
 
-`audit:behaviour` currently passes 13/13. It caught one genuine crash: `ICONS` was
-missing a `download` entry, so clicking the **Export** tab threw and took the page down.
+`audit:behaviour` currently passes 16/18. The two failures are the release-asset
+reachability checks, which 404 until the release is published (see **Download
+files**). It caught one genuine crash: `ICONS` was missing a `download` entry, so
+clicking the **Export** tab threw and took the page down.
+
+It also now asserts the experiment warning is present and not dismissible, that
+page content clears the fixed header, and that clicking a CTA whose asset 404s
+reports failure instead of silently saving a bad file.
 
 ## Deploying
 
-`npm run build` emits a fully static `dist/`. Note that `public/downloads/` is copied
-into `dist/` verbatim, so the output is ~124 MB. On GitHub Pages a 100 MB file exceeds
-the hard per-file limit — host the MSI and APK on GitHub Releases and point
-`DOWNLOADS.*.file` in `src/data.js` at those URLs instead.
+`npm run build` emits a fully static `dist/` of ~310 kB. The installers are **not**
+part of it — they are release assets on GitHub, referenced by absolute URL from
+`src/data.js`. That keeps the deploy small enough for any static host and avoids
+the 100 MB per-file ceiling entirely.
+
+Order of operations for a first publish: make the repo public → `npm run
+publish:downloads` → `npm run build` → deploy.

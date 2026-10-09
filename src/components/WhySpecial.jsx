@@ -10,7 +10,7 @@ export default function WhySpecial() {
       <SectionHead
         eyebrow="What makes it different"
         title="Most editors are a wrapper around someone else's engine. This one isn't."
-        lede="FusionCut is built from the compositor up — which is why it starts instantly, stays local, and behaves the same on a laptop and a phone."
+        lede="FusionCut KMP is built from the compositor up — which is why it starts instantly, stays local, and behaves the same on a laptop and a phone."
       />
 
       <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

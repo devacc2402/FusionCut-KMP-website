@@ -63,7 +63,7 @@ export default function Engine() {
       <SectionHead
         eyebrow="Under the hood"
         title="A compositor written from scratch, talking straight to the hardware"
-        lede="FusionCut's preview and its exported video are produced by the same native code path — so what you scrub is what you render."
+        lede="FusionCut KMP's preview and its exported video are produced by the same native code path — so what you scrub is what you render."
       />
 
       <div className="mt-16 grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:items-center lg:gap-16">

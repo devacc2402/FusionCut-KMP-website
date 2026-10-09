@@ -33,5 +33,9 @@ dist-ssr
 # so committing it makes the push fail outright. Keep the folder (via
 # .gitkeep) so `npm run dev` still works locally, and publish the real
 # files as GitHub Release assets instead. See "Deploying" in README.md.
+#
+# This folder is only an optional local mirror for offline testing. The
+# download buttons read DOWNLOADS.*.file in src/data.js, which points at
+# the GitHub Release asset, NOT at this path.
 public/downloads/*
 !public/downloads/.gitkeep

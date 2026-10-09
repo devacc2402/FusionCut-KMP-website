@@ -12,6 +12,21 @@ export const ACCENTS = {
 
 export const accent = (name) => ACCENTS[name] ?? ACCENTS.cyan
 
+/**
+ * The wordmark: "FusionCut" plus the "KMP" suffix, with "Cut" in neon cyan.
+ * Lives here so the nav and the footer can never drift apart.
+ */
+export function Brand({ className = '' }) {
+  return (
+    <span className={`font-semibold tracking-tight ${className}`}>
+      Fusion<span className="text-neon-cyan">Cut</span>
+      <span className="ml-1 font-mono text-[0.78em] font-medium text-fg-mute">
+        KMP
+      </span>
+    </span>
+  )
+}
+
 /** Small pill used for versions, tech tags and metadata. */
 export function Pill({ children, color, className = '' }) {
   const c = color ?? 'var(--color-fg-dim)'

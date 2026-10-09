@@ -1,4 +1,4 @@
-import { APP, STATS } from '../data.js'
+import { APP, EXPERIMENT_WARNING, STATS } from '../data.js'
 import DownloadButtons from './DownloadButtons.jsx'
 import { Glow, Pill } from './ui.jsx'
 
@@ -11,7 +11,7 @@ const TRACKS = [
   { label: 'AUDIO', accent: 'var(--color-neon-cyan)', left: '4%', width: '78%' },
 ]
 
-/** Miniature reconstruction of the FusionCut timeline: fixed centre playhead. */
+/** Miniature reconstruction of the FusionCut KMP timeline: fixed centre playhead. */
 function TimelineMock() {
   return (
     <div className="panel overflow-hidden">
@@ -84,7 +84,12 @@ function TimelineMock() {
 
 export default function Hero() {
   return (
-    <section id="top" className="relative overflow-hidden px-5 pt-32 pb-16 sm:px-8 sm:pt-40 sm:pb-20">
+    // pt-* here is only breathing room: .bannerOffset on <main> is what
+    // actually clears the fixed banner + nav.
+    <section
+      id="top"
+      className="relative overflow-hidden px-5 pt-8 pb-16 sm:px-8 sm:pt-10 sm:pb-20"
+    >
       {/* ambient background */}
       <Glow color="var(--color-neon-cyan)" className="-top-40 -left-32 size-[34rem] animate-drift" />
       <Glow color="var(--color-neon-emerald)" className="-right-24 top-24 size-[28rem] animate-drift [animation-delay:-8s]" />
@@ -98,9 +103,17 @@ export default function Hero() {
         {/* copy */}
         <div className="min-w-0">
           <div className="mb-6 flex flex-wrap items-center gap-2">
-            <Pill color="var(--color-neon-emerald)">v{APP.version} · now available</Pill>
+            <Pill color="var(--color-neon-amber)">experimental build</Pill>
+            <Pill color="var(--color-neon-emerald)">v{APP.version}</Pill>
             <Pill>Windows + Android</Pill>
           </div>
+
+          <p className="mb-3 text-[15px] font-semibold tracking-tight text-fg-dim">
+            Fusion<span className="text-neon-cyan">Cut</span>
+            <span className="ml-1.5 font-mono text-[13px] font-medium text-fg-mute">
+              KMP
+            </span>
+          </p>
 
           <h1 className="text-[2.6rem] font-bold leading-[1.05] tracking-tight text-balance sm:text-6xl lg:text-[4.1rem]">
             Motion graphics,
@@ -114,11 +127,30 @@ export default function Hero() {
             {APP.blurb}
           </p>
 
+          <div
+            className="mt-7 max-w-2xl rounded-xl border p-4"
+            style={{
+              borderColor:
+                'color-mix(in oklab, var(--color-neon-amber) 28%, transparent)',
+              backgroundColor:
+                'color-mix(in oklab, var(--color-neon-amber) 6%, transparent)',
+            }}
+          >
+            <p className="text-[14px] leading-relaxed text-pretty text-fg-dim">
+              <span className="font-semibold text-neon-amber">
+                This was an experiment, not a product.
+              </span>{' '}
+              {EXPERIMENT_WARNING.body}
+            </p>
+          </div>
+
           <div className="mt-10 max-w-2xl">
             <DownloadButtons />
           </div>
 
           <p className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-fg-mute">
+            <span className="text-neon-amber">Not recommended for use</span>
+            <span className="text-ink-700">|</span>
             <span>Free &amp; local-first</span>
             <span className="text-ink-700">|</span>
             <span>No account needed</span>

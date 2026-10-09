@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { APP } from '../data.js'
+import { Brand } from './ui.jsx'
 
 const LINKS = [
-  { href: '#why', label: 'Why FusionCut' },
+  { href: '#why', label: 'Why FusionCut KMP' },
   { href: '#features', label: 'Features' },
   { href: '#engine', label: 'Engine' },
   { href: '#faq', label: 'FAQ' },
@@ -19,8 +20,10 @@ export default function Nav() {
   }, [])
 
   return (
+    // The sticky wrapper (banner + nav) lives in App.jsx, so this header only
+    // owns its own background/border state.
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+      className={`transition-all duration-300 ${
         solid
           ? 'border-b border-ink-700/60 bg-ink-950/80 backdrop-blur-xl'
           : 'border-b border-transparent'
@@ -33,9 +36,7 @@ export default function Nav() {
             alt=""
             className="size-8 rounded-lg transition-transform duration-300 group-hover:scale-110"
           />
-          <span className="text-[15px] font-semibold tracking-tight">
-            Fusion<span className="text-neon-cyan">Cut</span>
-          </span>
+          <Brand className="text-[15px]" />
           <span className="hidden rounded border border-ink-700 bg-ink-900 px-1.5 py-0.5 font-mono text-[10px] text-fg-mute sm:inline">
             v{APP.version}
           </span>

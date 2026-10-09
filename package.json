@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "audit:layout": "node scripts/audit-layout.mjs http://127.0.0.1:5173/ 390 844",
     "audit:behaviour": "node scripts/audit-behaviour.mjs http://127.0.0.1:5173/",
+    "publish:downloads": "node scripts/publish-downloads.mjs",
     "shoot": "node scripts/shoot.mjs"
   },
   "dependencies": {

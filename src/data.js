@@ -1,34 +1,79 @@
 /**
- * Every claim on this page is traceable to the FusionCut codebase.
+ * Every claim on this page is traceable to the FusionCut KMP codebase.
  * See README.md in this folder for the source-of-truth notes.
  */
 
+/**
+ * Where the installers are actually hosted.
+ *
+ * They deliberately do NOT live in `public/downloads/`: the MSI is 107 MB and
+ * git refuses any blob over 100 MB, so keeping it in the repo breaks the push.
+ * They are published as GitHub Release assets instead, and the site points at
+ * those absolute URLs. GitHub allows 2 GB per asset and serves them with a
+ * correct `Content-Disposition: attachment`, so the browser downloads the real
+ * binary rather than whatever the static host returns for a missing path.
+ */
+const REPO = 'devacc2402/FusionCut-website'
+export const RELEASE_TAG = 'v1.1.0'
+const releaseUrl = (asset) =>
+  `https://github.com/${REPO}/releases/download/${RELEASE_TAG}/${asset}`
+
+export const RELEASES_PAGE = `https://github.com/${REPO}/releases/tag/${RELEASE_TAG}`
+
 export const APP = {
-  name: 'FusionCut',
+  name: 'FusionCut KMP',
   version: '1.1.0',
   tagline: 'A motion graphics editor that speaks directly to your GPU.',
   blurb:
     'Multi-track timeline, magnetic snapping, a full transform inspector and a hand-written C++ render engine — on Windows and Android from a single Kotlin codebase.',
 }
 
+/**
+ * Shown in the site-wide banner, in the download section and in the FAQ.
+ * FusionCut KMP is an experiment, not a supported product, and the page has to
+ * say so before anyone installs it.
+ */
+export const EXPERIMENT_WARNING = {
+  headline: 'FusionCut KMP was an experiment',
+  banner:
+    'FusionCut KMP was an experiment and is not recommended for everyday or professional use.',
+  body:
+    'FusionCut KMP was a one-off experiment to see how far Kotlin Multiplatform could be pushed with a hand-written native render engine. It was never finished, never security-audited and never intended for production work. Expect rough edges, crashes and missing features. Use it to poke at, not to deliver client work or irreplaceable footage with.',
+  points: [
+    'No support, no bug fixes and no roadmap',
+    'Video export from Android still writes a zero-byte file',
+    'Signed with a self-signed certificate, so SmartScreen will block it',
+    'Your projects live in a local database with no migration path out',
+  ],
+}
+
+/** Shown as the first item of `STATUS_NOTES` so the warning is unmissable. */
+export const EXPERIMENT_NOTE = {
+  tone: 'danger',
+  title: 'This is an experiment, not a product',
+  body: EXPERIMENT_WARNING.body,
+}
+
 export const DOWNLOADS = {
   windows: {
     label: 'Download for Windows',
     short: 'Windows',
-    file: '/downloads/FusionCut-1.1.0.msi',
-    filename: 'FusionCut-1.1.0.msi',
+    file: releaseUrl('FusionCut-KMP-1.1.0.msi'),
+    filename: 'FusionCut-KMP-1.1.0.msi',
     size: '107 MB',
     platform: 'Windows 10/11',
     note: 'Machine-wide MSI · Start menu + desktop shortcut · JRE bundled',
+    sha256: 'a6a906532a0260080492dd5a2b25fa5e6992f9673e0006f55d2c0fb1930ac53c',
   },
   android: {
     label: 'Download for Android',
     short: 'Android',
-    file: '/downloads/FusionCut-1.1.0.apk',
-    filename: 'FusionCut-1.1.0.apk',
+    file: releaseUrl('FusionCut-KMP-1.1.0.apk'),
+    filename: 'FusionCut-KMP-1.1.0.apk',
     size: '16.6 MB',
     platform: 'Android 7.0+',
     note: 'Signed release build · sideload to install',
+    sha256: 'a50062af2b1b2da794b4b054940cd6e02cb8ac920d55fe68f73a434f7165f0a8',
   },
 }
 
@@ -47,7 +92,7 @@ export const WHY = [
     icon: 'chip',
     accent: 'cyan',
     title: 'A render engine we actually wrote',
-    body: 'No FFmpeg subprocess, no 80 MB library, no waiting on a download. FusionCut links straight against the operating system’s own hardware codecs — Media Foundation on Windows, MediaCodec on Android — through a hand-written C++ core compiled with AVX2.',
+    body: 'No FFmpeg subprocess, no 80 MB library, no waiting on a download. FusionCut KMP links straight against the operating system’s own hardware codecs — Media Foundation on Windows, MediaCodec on Android — through a hand-written C++ core compiled with AVX2.',
     tag: 'C++20 · AVX2 · Media Foundation',
   },
   {
@@ -212,6 +257,7 @@ export const STACK = [
 /* Honest status notes. Keeping these visible builds trust.            */
 /* ------------------------------------------------------------------ */
 export const STATUS_NOTES = [
+  EXPERIMENT_NOTE,
   {
     tone: 'warn',
     title: 'Windows shows a SmartScreen warning',
@@ -231,8 +277,12 @@ export const STATUS_NOTES = [
 
 export const FAQ = [
   {
+    q: 'Should I actually use FusionCut KMP?',
+    a: `Probably not. ${EXPERIMENT_WARNING.body} If you just want to try it, install it on a machine you can wipe, and keep a copy of anything you care about.`,
+  },
+  {
     q: 'Do I need to install Java or FFmpeg first?',
-    a: 'No. The Java runtime is bundled inside the Windows installer, and the render engine talks to codecs that ship with Windows itself. There is nothing to install before or after FusionCut.',
+    a: 'No. The Java runtime is bundled inside the Windows installer, and the render engine talks to codecs that ship with Windows itself. There is nothing to install before or after FusionCut KMP.',
   },
   {
     q: 'Which video formats can I import?',
@@ -252,6 +302,6 @@ export const FAQ = [
   },
   {
     q: 'How do I report a bug or request a feature?',
-    a: 'FusionCut is in active development. Open an issue on the project repository with your platform, the version number from the About screen, and what you were trying to do.',
+    a: 'FusionCut KMP is finished as an experiment, so there is no active development to file against. If you hit something genuinely interesting, the project repository is still worth a look.',
   },
 ]

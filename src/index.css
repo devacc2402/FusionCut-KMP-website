@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /* ------------------------------------------------------------------
-   FusionCut design tokens — lifted straight from the app's own
+   FusionCut KMP design tokens — lifted straight from the app's own
    ui/theme/Color.kt so the site and the product feel identical.
    ------------------------------------------------------------------ */
 @theme {
@@ -71,8 +71,8 @@
 @layer base {
   html {
     scroll-behavior: smooth;
-    /* keep the sticky nav from covering anchored sections */
-    scroll-padding-top: 5.5rem;
+    /* keep the sticky nav + experiment banner from covering anchored sections */
+    scroll-padding-top: 9.5rem;
   }
 
   body {
@@ -96,6 +96,15 @@
 }
 
 @layer components {
+  /*
+    Page content must start below the fixed header (experiment banner + nav).
+    Driven by a custom property so the two stacked pieces of chrome can
+    report their own heights and the offset follows automatically.
+  */
+  .bannerOffset {
+    padding-top: var(--header-h, 9.25rem);
+  }
+
   /* thin neon-outlined card used across most sections */
   .panel {
     background-color: color-mix(in oklab, var(--color-ink-900) 80%, transparent);
@@ -114,6 +123,20 @@
     border-color: color-mix(in oklab, var(--color-neon-cyan) 45%, var(--color-ink-700));
     transform: translateY(-3px);
     box-shadow: 0 18px 40px -24px color-mix(in oklab, var(--color-neon-cyan) 55%, transparent);
+  }
+
+  /*
+    Download CTA label swap. Driven purely by the anchor's data-state so the
+    click handler never has to re-render: only the matching label is shown.
+  */
+  [data-dl-label] {
+    display: none;
+  }
+  a[data-state='idle'] [data-dl-label='idle'],
+  a[data-state='ok'] [data-dl-label='idle'],
+  a[data-state='checking'] [data-dl-label='checking'],
+  a[data-state='error'] [data-dl-label='error'] {
+    display: inline;
   }
 
   /* faint technical grid, evokes the timeline ruler */

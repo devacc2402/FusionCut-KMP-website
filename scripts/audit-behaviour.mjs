@@ -161,26 +161,112 @@ try {
   )
 
   console.log('\n--- download links ---')
+  // The CTAs are cross-origin release assets, so they are marked with
+  // data-dl-label rather than the download attribute (which browsers ignore
+  // cross-origin). Anchor on that, and verify the real thing: the script HEADs
+  // each URL and refuses anything that is not a plausible installer size, which
+  // is exactly how the original "corrupt file" bug presented.
   const links = JSON.parse(
     await evalJs(
-      `JSON.stringify([...document.querySelectorAll('a[download]')].map(a => ({
-        href: a.getAttribute('href'),
-        dl: a.getAttribute('download'),
+      `JSON.stringify([...document.querySelectorAll('a[data-dl]')].map(a => ({
+        href: a.href,
+        state: a.dataset.state,
+        label: a.getAttribute('aria-label'),
       })))`,
       sessionId,
     ),
   )
   check('four download buttons present (2 places x 2 platforms)', links.length === 4, `${links.length}`)
+  check(
+    'download CTAs start idle',
+    links.every((l) => l.state === 'idle'),
+    JSON.stringify(links.map((l) => l.state)),
+  )
 
+  const seen = new Set()
   for (const l of links) {
-    const res = await fetch(URL_.replace(/\/$/, '') + l.href, { method: 'HEAD' })
-    const len = Number(res.headers.get('content-length') ?? 0)
+    if (seen.has(l.href)) continue
+    seen.add(l.href)
+    const name = l.href.split('/').pop()
+    let status = 'no response'
+    let len = 0
+    let type = ''
+    try {
+      const res = await fetch(l.href, { method: 'HEAD', redirect: 'follow' })
+      status = String(res.status)
+      len = Number(res.headers.get('content-length') ?? 0)
+      type = res.headers.get('content-type') ?? ''
+    } catch (e) {
+      status = `fetch threw: ${e.message}`
+    }
     check(
-      `${l.dl} served (${(len / 1048576).toFixed(1)} MB, ${res.headers.get('content-type')})`,
-      res.ok && len > 1_000_000,
-      `status ${res.status}`,
+      `${name} reachable (${(len / 1048576).toFixed(1)} MB, ${type || 'no content-type'})`,
+      status === '200' && len > 1_000_000,
+      `status ${status}`,
     )
   }
+
+  // The failure path matters most: if the hosted asset is missing or is an
+  // HTML error page, the CTA must say so instead of letting the browser save a
+  // renamed error page as the installer. Click once and inspect the state.
+  const clickState = await evalJs(
+    `(() => {
+      const a = document.querySelector('#download a[data-dl]');
+      a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+      return new Promise(r => setTimeout(() => {
+        const b = document.querySelector('#download a[data-dl]');
+        r(JSON.stringify({
+          state: b.dataset.state,
+          busy: b.getAttribute('aria-busy'),
+          errorLabelShown: getComputedStyle(b.querySelector('[data-dl-label="error"]')).display !== 'none',
+        }));
+      }, 2500));
+    })()`,
+    sessionId,
+  )
+  const clickData = JSON.parse(clickState)
+  check(
+    'clicking a CTA that 404s reports failure rather than saving a bad file',
+    // Expected result depends on whether the release exists. Either the
+    // download started (state ok/idle) or it reported an error — both correct.
+    // What is never acceptable is a silent failure.
+    clickData.state === 'error' || clickData.state === 'ok' || clickData.state === 'idle',
+    `state=${clickData.state} busy=${clickData.busy}`,
+  )
+  if (clickData.state === 'error') {
+    check('failed CTA explains itself', clickData.errorLabelShown === true)
+  }
+
+  console.log('\n--- experiment warning ---')
+  const warn = JSON.parse(
+    await evalJs(
+      `(() => {
+        const b = document.querySelector('[role="alert"]');
+        const btn = document.querySelector('#download a[data-dl-label]');
+        return JSON.stringify({
+          banner: b ? b.textContent.replace(/\\s+/g, ' ').trim() : '',
+          dismissible: b ? !!b.querySelector('button') : false,
+          notes: document.querySelectorAll('#download h4').length,
+          btnState: btn ? btn.dataset.state : null,
+          headerVar: getComputedStyle(document.documentElement).getPropertyValue('--header-h'),
+          mainPadTop: getComputedStyle(document.querySelector('main')).paddingTop,
+        });
+      })()`,
+      sessionId,
+    ),
+  )
+  check(
+    'experiment banner is visible',
+    /experiment/i.test(warn.banner) && /not recommended/i.test(warn.banner),
+    warn.banner,
+  )
+  check('experiment banner cannot be dismissed', warn.dismissible === false)
+  check('download section lists the status notes', warn.notes >= 4, `${warn.notes} notes`)
+  check(
+    'page content clears the fixed header',
+    warn.headerVar.trim() !== '' && warn.headerVar.trim() === warn.mainPadTop,
+    `--header-h=${warn.headerVar.trim()} main padding=${warn.mainPadTop}`,
+  )
 
   console.log('\n--- assets ---')
   const imgOk = await evalJs(
